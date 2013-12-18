@@ -1,0 +1,49 @@
+package VKDBF2005;
+
+{$R *.res}
+{$ALIGN 8}
+{$ASSERTIONS ON}
+{$BOOLEVAL OFF}
+{$DEBUGINFO ON}
+{$EXTENDEDSYNTAX ON}
+{$IMPORTEDDATA ON}
+{$IOCHECKS ON}
+{$LOCALSYMBOLS ON}
+{$LONGSTRINGS ON}
+{$OPENSTRINGS ON}
+{$OPTIMIZATION ON}
+{$OVERFLOWCHECKS OFF}
+{$RANGECHECKS OFF}
+{$REFERENCEINFO OFF}
+{$SAFEDIVIDE OFF}
+{$STACKFRAMES OFF}
+{$TYPEDADDRESS OFF}
+{$VARSTRINGCHECKS ON}
+{$WRITEABLECONST OFF}
+{$MINENUMSIZE 1}
+{$IMAGEBASE $400000}
+{$DESCRIPTION 'VK DBF for Delphi 2005'}
+{$IMPLICITBUILD OFF}
+
+requires
+  rtl,
+  vcl,
+  dbrtl;
+
+contains
+  VKDBFUtil in 'VKDBFUtil.pas',
+  VKDBFCDX in 'VKDBFCDX.pas',
+  VKDBFCollate in 'VKDBFCollate.pas',
+  VKDBFGostCrypt in 'VKDBFGostCrypt.pas',
+  VKDBFDataSet in 'VKDBFDataSet.pas',
+  VKDBFIndex in 'VKDBFIndex.pas',
+  VKDBFMemMgr in 'VKDBFMemMgr.pas',
+  VKDBFNTX in 'VKDBFNTX.pas',
+  VKDBFParser in 'VKDBFParser.pas',
+  VKDBFPrx in 'VKDBFPrx.pas',
+  VKDBFSortedList in 'VKDBFSortedList.pas',
+  VKDBFSorters in 'VKDBFSorters.pas',
+  VKDBFCrypt in 'VKDBFCrypt.pas',
+  VKDBFLogger in 'VKDBFLogger.pas';
+
+end.

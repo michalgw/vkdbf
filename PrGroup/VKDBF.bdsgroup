@@ -1,0 +1,20 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<BorlandProject>
+	<PersonalityInfo>
+		<Option>
+			<Option Name="Personality">Default.Personality</Option>
+			<Option Name="ProjectType"></Option>
+			<Option Name="Version">1.0</Option>
+			<Option Name="GUID">{C4DBA019-EC3F-4088-8CC5-05B16BE7EAB8}</Option>
+		</Option>
+	</PersonalityInfo>
+	<Default.Personality>  <Projects>
+      <Projects Name="VKDBFTests.exe">..\DUNIT\VKDBFTests.bdsproj</Projects>
+      <Projects Name="EDB.exe">..\EDB2005\EDB.bdsproj</Projects>
+      <Projects Name="VKDBF2005.bpl">..\BIN\VKDBF2005.bdsproj</Projects>
+      <Projects Name="NtxView.exe">..\NtxView\NtxView.bdsproj</Projects>
+      <Projects Name="Targets">VKDBFTests.exe EDB.exe VKDBF2005.bpl NtxView.exe</Projects>
+    </Projects>
+    <Dependencies/>
+  </Default.Personality>
+</BorlandProject>

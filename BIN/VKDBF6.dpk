@@ -1,0 +1,48 @@
+package VKDBF6;
+
+{$R *.res}
+{$ALIGN 8}
+{$ASSERTIONS OFF}
+{$BOOLEVAL OFF}
+{$DEBUGINFO OFF}
+{$EXTENDEDSYNTAX ON}
+{$IMPORTEDDATA ON}
+{$IOCHECKS ON}
+{$LOCALSYMBOLS OFF}
+{$LONGSTRINGS ON}
+{$OPENSTRINGS ON}
+{$OPTIMIZATION ON}
+{$OVERFLOWCHECKS OFF}
+{$RANGECHECKS OFF}
+{$REFERENCEINFO OFF}
+{$SAFEDIVIDE OFF}
+{$STACKFRAMES OFF}
+{$TYPEDADDRESS OFF}
+{$VARSTRINGCHECKS ON}
+{$WRITEABLECONST OFF}
+{$MINENUMSIZE 1}
+{$IMAGEBASE $400000}
+{$DESCRIPTION 'VK DBF V 1.0.7.0'}
+{$IMPLICITBUILD OFF}
+
+requires
+  vcl,
+  vcldb;
+
+{%File 'ReadMe.txt'}
+{%File 'license.txt'}
+
+contains
+  VKDBFUtil in 'VKDBFUtil.pas',
+  VKDBFCrypt in 'VKDBFCrypt.pas',
+  VKDBFDataSet in 'VKDBFDataSet.pas',
+  VKDBFIndex in 'VKDBFIndex.pas',
+  VKDBFMemMgr in 'VKDBFMemMgr.pas',
+  VKDBFNTX in 'VKDBFNTX.pas',
+  VKDBFParser in 'VKDBFParser.pas',
+  VKDBFPrx in 'VKDBFPrx.pas',
+  VKDBFCDX in 'VKDBFCDX.pas',
+  VKDBFCollate in 'VKDBFCollate.pas',
+  VKDBFSorters in 'VKDBFSorters.pas';
+
+end.

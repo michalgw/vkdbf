@@ -1,0 +1,4 @@
+VK DBF License Agreement
+
+GNU GENERAL PUBLIC LICENSE
+http://opensource.org/licenses/GPL-3.0

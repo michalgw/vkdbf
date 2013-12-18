@@ -1,0 +1,51 @@
+package VKDBF;
+
+{$R *.RES}
+{$ALIGN ON}
+{$ASSERTIONS OFF}
+{$BOOLEVAL OFF}
+{$DEBUGINFO OFF}
+{$EXTENDEDSYNTAX ON}
+{$IMPORTEDDATA ON}
+{$IOCHECKS ON}
+{$LOCALSYMBOLS OFF}
+{$LONGSTRINGS ON}
+{$OPENSTRINGS ON}
+{$OPTIMIZATION ON}
+{$OVERFLOWCHECKS OFF}
+{$RANGECHECKS OFF}
+{$REFERENCEINFO OFF}
+{$SAFEDIVIDE OFF}
+{$STACKFRAMES OFF}
+{$TYPEDADDRESS OFF}
+{$VARSTRINGCHECKS ON}
+{$WRITEABLECONST ON}
+{$MINENUMSIZE 1}
+{$IMAGEBASE $400000}
+{$DESCRIPTION 'VK DBF V 1.0.8.10'}
+{$IMPLICITBUILD OFF}
+
+requires
+  vcl50,
+  Vcldb50;
+
+{%File 'ReadMe.txt'}
+{%File 'license.txt'}
+
+contains
+  VKDBFUtil in 'VKDBFUtil.pas',
+  VKDBFDataSet in 'VKDBFDataSet.pas',
+  VKDBFIndex in 'VKDBFIndex.pas',
+  VKDBFMemMgr in 'VKDBFMemMgr.pas',
+  VKDBFNTX in 'VKDBFNTX.pas',
+  VKDBFParser in 'VKDBFParser.pas',
+  VKDBFCDX in 'VKDBFCDX.pas',
+  VKDBFCrypt in 'VKDBFCrypt.pas',
+  VKDBFPrx in 'VKDBFPrx.pas',
+  VKDBFCollate in 'VKDBFCollate.pas',
+  VKDBFSorters in 'VKDBFSorters.pas',
+  VKDBFSortedList in 'VKDBFSortedList.pas',
+  VKDBFGostCrypt in 'VKDBFGostCrypt.pas',
+  VKDBFLogger in 'VKDBFLogger.pas';
+
+end.
