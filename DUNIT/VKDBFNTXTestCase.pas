@@ -29,7 +29,6 @@ type
   published
     procedure TestFirst;
     procedure TestSecond;
-    procedure TestThird;
   end;
 
   function RndStr: String;
@@ -111,26 +110,6 @@ begin
   end;
 end;
 
-procedure TVKDBFNTXTestCase.TestThird;
-var
-  DBFPokaz: TVKDBFNTX;
-begin
-  DBFPokaz := TVKDBFNTX.Create(nil);
-  try
-    DBFPokaz.DBFFileName := 'tmp\Pokaz.dbf';
-    DBFPokaz.Open;
-    with (DBFPokaz.Indexes.Add as TVKNTXIndex) do
-    begin
-      NTXFileName := 'tmp\Pokaz.ntx';
-      Name := 'POKAZ';
-      KeyExpresion := 'RAJON+STR(N_LC,5)+MES';
-      CreateIndex(True);
-    end;
-  finally
-    FreeAndNil(DBFPokaz);
-  end;
-end;
-
 constructor TVKDBFNTXTestCase.Create(MethodName: string);
 var
   index: TVKNTXIndex;
@@ -171,9 +150,6 @@ begin
   index.KeyExpresion := 'F2';
   index.CreateIndex();
   dbf.Close;
-  //
-  CopyFile( 'demion777\Pokaz.dbf',
-            'tmp\Pokaz.dbf', False);
 end;
 
 destructor TVKDBFNTXTestCase.Destroy;
@@ -188,8 +164,6 @@ begin
       FreeAndNil(dbf);
     end;
   end;
-  DeleteFile('tmp\Pokaz.dbf');
-  DeleteFile('tmp\Pokaz.ntx');
   inherited;
 end;
 

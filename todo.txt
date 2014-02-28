@@ -1,0 +1,7 @@
+TODO for vkDBF
+======================
+- Realize IDX and CDX indexes.
+- Realize NDX and MDX indexes.
+- New locate type by ordered DBF.
+- Range by index don't work with descended index
+- Realize Cashed updates.
