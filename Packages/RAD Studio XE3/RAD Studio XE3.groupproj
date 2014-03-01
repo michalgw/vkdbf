@@ -1,0 +1,60 @@
+﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+    <PropertyGroup>
+        <ProjectGuid>{FA4CAC37-50C7-49E8-A8DD-26446BD1CB6C}</ProjectGuid>
+    </PropertyGroup>
+    <ItemGroup>
+        <Projects Include="VKDBFR17.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="VKDBFD17.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="..\..\Tests\VKDBFTests.dproj">
+            <Dependencies/>
+        </Projects>
+    </ItemGroup>
+    <ProjectExtensions>
+        <Borland.Personality>Default.Personality.12</Borland.Personality>
+        <Borland.ProjectType/>
+        <BorlandProject>
+            <Default.Personality/>
+        </BorlandProject>
+    </ProjectExtensions>
+    <Target Name="VKDBFR17">
+        <MSBuild Projects="VKDBFR17.dproj"/>
+    </Target>
+    <Target Name="VKDBFR17:Clean">
+        <MSBuild Projects="VKDBFR17.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="VKDBFR17:Make">
+        <MSBuild Projects="VKDBFR17.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="VKDBFD17">
+        <MSBuild Projects="VKDBFD17.dproj"/>
+    </Target>
+    <Target Name="VKDBFD17:Clean">
+        <MSBuild Projects="VKDBFD17.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="VKDBFD17:Make">
+        <MSBuild Projects="VKDBFD17.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="VKDBFTests">
+        <MSBuild Projects="..\..\Tests\VKDBFTests.dproj"/>
+    </Target>
+    <Target Name="VKDBFTests:Clean">
+        <MSBuild Projects="..\..\Tests\VKDBFTests.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="VKDBFTests:Make">
+        <MSBuild Projects="..\..\Tests\VKDBFTests.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="Build">
+        <CallTarget Targets="VKDBFR17;VKDBFD17;VKDBFTests"/>
+    </Target>
+    <Target Name="Clean">
+        <CallTarget Targets="VKDBFR17:Clean;VKDBFD17:Clean;VKDBFTests:Clean"/>
+    </Target>
+    <Target Name="Make">
+        <CallTarget Targets="VKDBFR17:Make;VKDBFD17:Make;VKDBFTests:Make"/>
+    </Target>
+    <Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')"/>
+</Project>

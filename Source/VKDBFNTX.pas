@@ -9,7 +9,7 @@
 { The Initial Developer of the Original Code is Vlad Karpov (KarpovVV@protek.ru).  }
 {                                                                                  }
 { Contributors:                                                                    }
-{   Sergey Klochkov (HSerg)                                                        }
+{   Sergey Klochkov (HSerg@sklabs.ru)                                              }
 {                                                                                  }
 { You may retrieve the latest version of this file at the Project vkDBF home page, }
 { located at https://sourceforge.net/projects/vkdbf/                               }
@@ -509,7 +509,7 @@ type
     function GetIndexBag: TVKDBFIndexBag; override;
     function GetIndexOrder: TVKDBFOrder; override;
 
-    procedure GetHashCode(Sender: TObject; Item: PSORT_ITEM; out HashCode: DWord); override;
+    procedure GetVKHashCode(Sender: TObject; Item: PSORT_ITEM; out HashCode: DWord); override;
 
   public
 
@@ -667,7 +667,7 @@ type
 implementation
 
 uses
-   DBCommon, Dialogs, VKDBFDataSet;
+   DBCommon, Dialogs, AnsiStrings, VKDBFDataSet;
 
 { TVKNTXIndex }
 
@@ -2178,7 +2178,7 @@ begin
       end;
     end else begin
       //Result := AnsiStrLComp(S1, S2, MaxLen);  - in Win95-98 not currect
-      Result := StrLComp(S1, S2, MaxLen);
+      Result := {$IFDEF DELPHIXE4}AnsiStrings.{$ENDIF}StrLComp(S1, S2, MaxLen);
     end;
   end;
 end;
@@ -3461,7 +3461,7 @@ begin
         GetHashCodeMethod := nil;
       end else begin
         HashTableSize := THashTableSizeType(Integer(FHashTypeForTreeSorters) - 1);
-        GetHashCodeMethod := GetHashCode;
+        GetHashCodeMethod := GetVKHashCode;
       end;
       SorterRecCount :=( PreSorterBlockSize ) div ( FNTXOrder.FHead.key_size + ( 2 * SizeOf(DWord) ) );
       Sorter := TVKRedBlackTreeSorter.Create(  SorterRecCount,
@@ -4554,7 +4554,7 @@ begin
       if c <> 0 then Break;
     end;
   end else begin
-    c := StrLComp(c1, c2, MaxLen);
+    c := {$IFDEF DELPHIXE4}AnsiStrings.{$ENDIF}StrLComp(c1, c2, MaxLen);
   end;
   if Desc then c := - c;
 end;
@@ -4765,7 +4765,7 @@ begin
         GetHashCodeMethod := nil;
       end else begin
         HashTableSize := THashTableSizeType(Integer(FHashTypeForTreeSorters) - 1);
-        GetHashCodeMethod := GetHashCode;
+        GetHashCodeMethod := GetVKHashCode;
       end;
       Sorter := SorterClass.Create( oB.Header.last_rec,
                                     FNTXOrder.FHead.key_size,
@@ -4971,7 +4971,7 @@ begin
         GetHashCodeMethod := nil;
       end else begin
         HashTableSize := THashTableSizeType(Integer(FHashTypeForTreeSorters) - 1);
-        GetHashCodeMethod := GetHashCode;
+        GetHashCodeMethod := GetVKHashCode;
       end;
       if SorterClass.InheritsFrom(TVKOuterSorter) then begin
         TmpHandler := TProxyStream.Create;
@@ -5563,7 +5563,7 @@ var
                 TransKey(pAnsiChar(@sitem.key[0]), FNTXOrder.FHead.key_size, false);
                 try
                   FGetHashFromSortItem := False;
-                  GetHashCode(self, @sitem, sitem.Hash);
+                  GetVKHashCode(self, @sitem, sitem.Hash);
                 finally
                   FGetHashFromSortItem := True;
                 end;
@@ -5887,7 +5887,7 @@ begin
         GetHashCodeMethod := nil;
       end else begin
         HashTableSize := THashTableSizeType(Integer(FHashTypeForTreeSorters) - 1);
-        GetHashCodeMethod := GetHashCode;
+        GetHashCodeMethod := GetVKHashCode;
       end;
 
       //
@@ -6121,7 +6121,7 @@ var
               TransKey(pAnsiChar(@sitem.key[0]), FNTXOrder.FHead.key_size, false);
               try
                 FGetHashFromSortItem := False;
-                GetHashCode(self, @sitem, sitem.Hash);
+                GetVKHashCode(self, @sitem, sitem.Hash);
               finally
                 FGetHashFromSortItem := True;
               end;
@@ -6381,7 +6381,7 @@ begin
         GetHashCodeMethod := nil;
       end else begin
         HashTableSize := THashTableSizeType(Integer(FHashTypeForTreeSorters) - 1);
-        GetHashCodeMethod := GetHashCode;
+        GetHashCodeMethod := GetVKHashCode;
       end;
 
       //
@@ -7221,7 +7221,7 @@ var
         TransKey(pAnsiChar(@sitem.key[0]), FNTXOrder.FHead.key_size, false);
         try
           FGetHashFromSortItem := False;
-          GetHashCode(self, @sitem, sitem.Hash);
+          GetVKHashCode(self, @sitem, sitem.Hash);
         finally
           FGetHashFromSortItem := True;
         end;
@@ -7484,7 +7484,7 @@ begin
         GetHashCodeMethod := nil;
       end else begin
         HashTableSize := THashTableSizeType(Integer(FHashTypeForTreeSorters) - 1);
-        GetHashCodeMethod := GetHashCode;
+        GetHashCodeMethod := GetVKHashCode;
       end;
 
       //
@@ -7591,7 +7591,7 @@ begin
 end;
 *)
 
-procedure TVKNTXIndex.GetHashCode(Sender: TObject; Item: PSORT_ITEM;
+procedure TVKNTXIndex.GetVKHashCode(Sender: TObject; Item: PSORT_ITEM;
   out HashCode: DWord);
 var
   HashCodeArr: array[0..3] of Byte absolute HashCode;
@@ -7615,7 +7615,8 @@ var
     end else begin
       Move(Item.key, key, FNTXOrder.FHead.key_size);
     end;
-    if FKeyParser.Prec <> 0 then key[FKeyParser.Len - FKeyParser.Prec] := Byte(DecimalSeparator);
+    if FKeyParser.Prec <> 0 then
+      key[FKeyParser.Len - FKeyParser.Prec] := Byte({$IFDEF DELPHIXE}FormatSettings.{$ENDIF}DecimalSeparator);
     SetString(S, pAnsiChar(@key[0]), FNTXOrder.FHead.key_size);
   end;
 
@@ -7659,11 +7660,7 @@ begin
           if sign then i64 := - i64;
           HashFromInt64(i64);
         end;
-      {$IFDEF VER140}
-      varShortInt,
-      varByte,
-      {$ENDIF}
-      {$IFDEF VER150}
+      {$IFDEF DELPHI6}
       varShortInt,
       varByte,
       {$ENDIF}
@@ -7674,10 +7671,7 @@ begin
           if sign then i64 := - i64;
           HashFromInt64(i64);
         end;
-      {$IFDEF VER140}
-      varWord,
-      {$ENDIF}
-      {$IFDEF VER150}
+      {$IFDEF DELPHI6}
       varWord,
       {$ENDIF}
       varSmallint:
@@ -7687,10 +7681,7 @@ begin
           if sign then i64 := - i64;
           HashFromInt64(i64);
         end;
-      {$IFDEF VER140}
-      varLongWord,
-      {$ENDIF}
-      {$IFDEF VER150}
+      {$IFDEF DELPHI6}
       varLongWord,
       {$ENDIF}
       varInteger:

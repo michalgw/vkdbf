@@ -10,7 +10,7 @@
 { Based on DEC Hagen Reddmann (HaReddmann@AOL.COM)                                 }
 {                                                                                  }
 { Contributors:                                                                    }
-{   Sergey Klochkov (HSerg)                                                        }
+{   Sergey Klochkov (HSerg@sklabs.ru)                                              }
 {                                                                                  }
 { You may retrieve the latest version of this file at the Project vkDBF home page, }
 { located at https://sourceforge.net/projects/vkdbf/                               }

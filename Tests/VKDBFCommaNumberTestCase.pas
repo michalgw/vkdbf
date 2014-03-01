@@ -25,8 +25,8 @@ var
   Separator: Char;
 begin
   // in dbf data in field: '1,05'  '2.03'
-  Separator := DecimalSeparator;
-  DecimalSeparator := '.';
+  Separator := FormatSettings.DecimalSeparator;
+  FormatSettings.DecimalSeparator := '.';
   dbf1 := TVKDBFNTX.Create(nil);
   try
     dbf1.DBFFileName := 'CommaNumber\CommaNumber.dbf';
@@ -36,7 +36,7 @@ begin
     Assert(dbf1.FieldByName('CN').AsString = '2.03');
     dbf1.Close;
   finally
-    DecimalSeparator := Separator;
+    FormatSettings.DecimalSeparator := Separator;
     FreeAndNil(dbf1);
   end;
 end;

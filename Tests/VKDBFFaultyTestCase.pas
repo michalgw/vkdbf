@@ -47,7 +47,7 @@ begin
 
   for i := 0 to Pred(memfile.Size) do
   begin
-    Assert(pChar(memfile.Memory)[i] = pChar(memfile1.Memory)[i]);
+    Assert(PByte(memfile.Memory)[i] = PByte(memfile1.Memory)[i]);
   end;
 
 end;
@@ -56,8 +56,8 @@ procedure TVKDBFFaultyTestCase.SetUp;
 var
   fh: Integer;
   l: Integer;
-  c: array[0..1000] of char;
-  q: String;
+  c: array[0..1000] of AnsiChar;
+  q: AnsiString;
 begin
   inherited SetUp;
   CopyFile( 'faulty\faulty.dbf',
@@ -73,7 +73,7 @@ begin
   FillChar(c, 1001, #0);
   FileRead(fh, c, l - 2);
   FileClose(fh);
-  SetString(q, pChar(@c[0]), l - 2);
+  SetString(q, PAnsiChar(@c[0]), l - 2);
   dbf.Crypt.Password := q;
   dbf.Crypt.CryptMethod := cmGost;
   dbf.Crypt.Active := True;

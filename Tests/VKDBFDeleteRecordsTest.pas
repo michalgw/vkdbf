@@ -41,8 +41,8 @@ procedure TVKDBFDeleteRecordsTestCase.SetUp;
 var
   fh: Integer;
   l: Integer;
-  c: array[0..1000] of char;
-  q: String;
+  c: array[0..1000] of AnsiChar;
+  q: AnsiString;
 begin
   inherited SetUp;
   CopyFile( 'faulty\faulty.dbf',
@@ -58,7 +58,7 @@ begin
   FillChar(c, 1001, #0);
   FileRead(fh, c, l - 2);
   FileClose(fh);
-  SetString(q, pChar(@c[0]), l - 2);
+  SetString(q, PAnsiChar(@c[0]), l - 2);
   dbf1.Crypt.Password := q;
   dbf1.Crypt.CryptMethod := cmGost;
   dbf1.Crypt.Active := True;

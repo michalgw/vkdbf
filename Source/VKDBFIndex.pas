@@ -9,7 +9,7 @@
 { The Initial Developer of the Original Code is Vlad Karpov (KarpovVV@protek.ru).  }
 {                                                                                  }
 { Contributors:                                                                    }
-{   Sergey Klochkov (HSerg)                                                        }
+{   Sergey Klochkov (HSerg@sklabs.ru)                                              }
 {                                                                                  }
 { You may retrieve the latest version of this file at the Project vkDBF home page, }
 { located at https://sourceforge.net/projects/vkdbf/                               }
@@ -378,7 +378,7 @@ type
     function GetIndexBag: TVKDBFIndexBag; virtual;
     function GetIndexOrder: TVKDBFOrder; virtual;
 
-    procedure GetHashCode(Sender: TObject; Item: PSORT_ITEM; out HashCode: DWord); virtual;
+    procedure GetVKHashCode(Sender: TObject; Item: PSORT_ITEM; out HashCode: DWord); virtual;
 
   public
 
@@ -1024,23 +1024,27 @@ var
   i: Integer;
 begin
   Value := VarArrayCreate([0, High(InputValue)], varVariant);
-  for i := 0 to High(InputValue) do begin
-    with InputValue[I] do
-      case VType of
-        vtInteger:    Value[i] := VInteger;
-        vtBoolean:    Value[i] := VBoolean;
-        vtChar:       Value[i] := VChar;
-        vtExtended:   Value[i] := VExtended^;
-        vtString:     Value[i] := VString^;
+  for i := 0 to High(InputValue) do
+    begin
+      case InputValue[I].VType of
+        vtInteger:    Value[i] := InputValue[I].VInteger;
+        vtBoolean:    Value[i] := InputValue[I].VBoolean;
+        vtChar:       Value[i] := InputValue[I].VChar;
+        vtExtended:   Value[i] := InputValue[I].VExtended^;
+        vtString:     Value[i] := InputValue[I].VString^;
         //vtPChar:      Value[i] := VPChar;
         //vtObject:     Value[i] := VObject;
         //vtClass:      Value[i] := VClass;
-        vtAnsiString: Value[i] := AnsiString(VAnsiString^);
-        vtCurrency:   Value[i] := VCurrency^;
-        vtVariant:    Value[i] := VVariant^;
+        vtAnsiString: Value[i] := AnsiString(InputValue[I].VAnsiString^);
+        vtCurrency:   Value[i] := InputValue[I].VCurrency^;
+        vtVariant:    Value[i] := InputValue[I].VVariant^;
         //vtInt64:      Value[i] := VInt64^;
+        vtWideString: Value[i] := WideString(InputValue[I].VVariant);
+        vtUnicodeString: Value[i] := WideString(UnicodeString(InputValue[I].VUnicodeString));
+        else
+          raise Exception.Create('TIndex.ArrayOfConstant2Variant: Unsupported type ['+IntToStr(InputValue[I].VType)+'].');
+      end;
     end;
-  end;
 end;
 
 function TIndex.FindKeyFields(const KeyFields: AnsiString;
@@ -1204,7 +1208,7 @@ begin
   CreateIndexUsingSorter(TVKAVLTreeSorter, Activate);
 end;
 
-procedure TIndex.GetHashCode(Sender: TObject; Item: PSORT_ITEM;
+procedure TIndex.GetVKHashCode(Sender: TObject; Item: PSORT_ITEM;
   out HashCode: DWord);
 begin
   HashCode := 0;

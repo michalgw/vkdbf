@@ -1,4 +1,4 @@
-unit VKDBFNextAfterSeek;
+unit VKDBFNextAfterSeekLong;
 
 interface
 
@@ -6,7 +6,7 @@ uses TestFrameWork, Windows, VKDBFDataSet, VKDBFNTX, Sysutils;
 
 type
 
-  TVKDBFNextAfterSeek = class(TTestCase)
+  TVKDBFNextAfterSeekLong = class(TTestCase)
   private
     dbf: TVKDBFNTX;
   protected
@@ -18,9 +18,9 @@ type
 
 implementation
 
-{ TVKDBFNextAfterSeek }
+{ TVKDBFNextAfterSeekLong }
 
-procedure TVKDBFNextAfterSeek.TestFirst;
+procedure TVKDBFNextAfterSeekLong.TestFirst;
 var
   i: Integer;
 begin
@@ -28,27 +28,28 @@ begin
     if dbf.FindKey([i]) then begin
       dbf.Next;
       Assert(dbf.FieldByName('F1').AsInteger = i + 1, 'Ключ не найден: ' + IntToStr(i));
+      dbf.Next;
     end else
       Assert(false, 'Ключ не найден: ' + IntToStr(i));
   end;
 end;
 
-procedure TVKDBFNextAfterSeek.SetUp;
+procedure TVKDBFNextAfterSeekLong.SetUp;
 var
   index: TVKNTXIndex;
   fld: TVKDBFFieldDef;
   i, r: Integer;
 begin
   inherited SetUp;
-  DeleteFile('tmp\NextAfterSeek.dbf');
-  DeleteFile('tmp\NextAfterSeek.ntx');
+  DeleteFile('tmp\NextAfterSeekLong.dbf');
+  DeleteFile('tmp\NextAfterSeekLong.ntx');
   Randomize;
   dbf := TVKDBFNTX.Create(nil);
-  dbf.DBFFileName := 'tmp\NextAfterSeek.dbf';
+  dbf.DBFFileName := 'tmp\NextAfterSeekLong.dbf';
   fld := TVKDBFFieldDef(dbf.DBFFieldDefs.Add);
   fld.Name := 'F1';
   fld.field_type := 'N';
-  fld.len := 5;
+  fld.len := 10;
   dbf.CreateTable;
   dbf.AccessMode.AccessMode := 66;
   dbf.Open;
@@ -71,19 +72,19 @@ begin
     end;
   end;
   index := TVKNTXIndex(dbf.Indexes.Add);
-  index.NTXFileName := 'tmp\NextAfterSeek.ntx';
+  index.NTXFileName := 'tmp\NextAfterSeekLong.ntx';
   index.KeyExpresion := 'F1';
   index.CreateIndex();
 end;
 
-procedure TVKDBFNextAfterSeek.TearDown;
+procedure TVKDBFNextAfterSeekLong.TearDown;
 begin
   inherited TearDown;
   if dbf <> nil then begin
     try
       if dbf.Active then dbf.Close;
-      DeleteFile('tmp\NextAfterSeek.dbf');
-      DeleteFile('tmp\NextAfterSeek.ntx');
+      DeleteFile('tmp\NextAfterSeekLong.dbf');
+      DeleteFile('tmp\NextAfterSeekLong.ntx');
     finally
       FreeAndNil(dbf);
     end;
@@ -92,6 +93,6 @@ end;
 
 initialization
 
-  TestFramework.RegisterTest(TVKDBFNextAfterSeek.Suite);
+  TestFramework.RegisterTest(TVKDBFNextAfterSeekLong.Suite);
 
 end.

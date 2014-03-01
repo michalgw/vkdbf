@@ -190,7 +190,7 @@ begin
     Assert(dbf.GetCurrentAutoInc('s_idx') = 3210);
     //
 
-    Assert(not FileExists(ChangeFileExt(dbf.DBFFileName, '.dbt')), 'Lob not deleted!');
+    Assert(not FileExists(ChangeFileExt(string(dbf.DBFFileName), '.dbt')), 'Lob not deleted!');
 
   finally
     FreeAndNil(fields);
@@ -211,8 +211,8 @@ procedure TVKDBFAddFieldsTestCase.SetUp;
 var
   fh: Integer;
   l: Integer;
-  c: array[0..1000] of char;
-  q: String;
+  c: array[0..1000] of AnsiChar;
+  q: AnsiString;
 begin
   inherited SetUp;
   CopyFile( 'faulty\faulty.dbf',
@@ -228,7 +228,7 @@ begin
   FillChar(c, 1001, #0);
   FileRead(fh, c, l - 2);
   FileClose(fh);
-  SetString(q, pChar(@c[0]), l - 2);
+  SetString(q, PAnsiChar(@c[0]), l - 2);
   dbf.Crypt.Password := q;
   dbf.Crypt.CryptMethod := cmGost;
   dbf.Crypt.Active := True;

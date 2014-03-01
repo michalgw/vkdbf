@@ -9,7 +9,7 @@
 { The Initial Developer of the Original Code is Vlad Karpov (KarpovVV@protek.ru).  }
 {                                                                                  }
 { Contributors:                                                                    }
-{   Sergey Klochkov (HSerg)                                                        }
+{   Sergey Klochkov (HSerg@sklabs.ru)                                              }
 {                                                                                  }
 { You may retrieve the latest version of this file at the Project vkDBF home page, }
 { located at https://sourceforge.net/projects/vkdbf/                               }
@@ -17,9 +17,9 @@
 {**********************************************************************************}
 unit VKDBFLogger;
 
-interface
-
 {$I VKDBF.DEF}
+
+interface
 
 uses
   Windows, Messages, SysUtils, Classes, syncobjs;
@@ -51,11 +51,11 @@ type
 
   TVKDBFLogAbstract = class
   private
-    FLogSuffix: AnsiString;
-    FLogDir: AnsiString;
+    FLogSuffix: string;
+    FLogDir: string;
     FOwner: TObject;
-    FLogFile: AnsiString;
-    FDateFormat: AnsiString;
+    FLogFile: string;
+    FDateFormat: string;
     FOutFields: TVKDBFLogWriteFields;
     FLevelThreshold: Word;
   public
@@ -68,10 +68,10 @@ type
     procedure FlushCriticalVolume; virtual; abstract;
     function GetLastInfo(rCount: Integer): AnsiString; virtual; abstract;
     property Owner: TObject read FOwner write FOwner;
-    property LogDir: AnsiString read FLogDir write FLogDir;
-    property LogSuffix: AnsiString read FLogSuffix write FLogSuffix;
-    property LogFile: AnsiString read FLogFile write FLogFile;
-    property DateFormat: AnsiString read FDateFormat write FDateFormat;
+    property LogDir: string read FLogDir write FLogDir;
+    property LogSuffix: string read FLogSuffix write FLogSuffix;
+    property LogFile: string read FLogFile write FLogFile;
+    property DateFormat: string read FDateFormat write FDateFormat;
     property OutFields: TVKDBFLogWriteFields read FOutFields write FOutFields;
     property LevelThreshold: Word read FLevelThreshold write FLevelThreshold;
   end;
@@ -134,7 +134,7 @@ type
     procedure FlushCriticalVolume; override;
     procedure Close; override;
     function GetLastInfo(rCount: Integer): AnsiString; override;
-    constructor Create(AOwner: TObject; ALogDir, ALogSuffix: AnsiString; FlushThreshold: Integer = 5);
+    constructor Create(AOwner: TObject; ALogDir, ALogSuffix: string; FlushThreshold: Integer = 5);
     destructor Destroy; override;
     property FullFlushThreshold: Integer read FFullFlushThreshold;
     property Owner;
@@ -155,6 +155,8 @@ var
 
 implementation
 
+uses
+  AnsiStrings;
 
 function Modulo(Index: Integer): Integer;
 begin
@@ -282,7 +284,7 @@ begin
   end;
 end;
 
-constructor TVKDBFLog.Create(AOwner: TObject; ALogDir, ALogSuffix: AnsiString; FlushThreshold: Integer = 5);
+constructor TVKDBFLog.Create(AOwner: TObject; ALogDir, ALogSuffix: string; FlushThreshold: Integer = 5);
 begin
   inherited Create;
   FOnAfterWriteLog := nil;
@@ -374,7 +376,7 @@ begin
     if RecBuf[EndIndex].Level < FLevelThreshold then begin
 
       if lwfDateTime in FOutFields then begin
-        TmpStr := FormatDateTime(FDateFormat, SystemTimeToDateTime(RecBuf[EndIndex].SystemTime));
+        TmpStr := AnsiString(FormatDateTime(FDateFormat, SystemTimeToDateTime(RecBuf[EndIndex].SystemTime)));
         pTmpStr := pAnsiChar(TmpStr);
         i := 0;
         while pTmpStr[i] <> #0 do begin
@@ -447,8 +449,8 @@ begin
       if RecBuf[rBeg].null = 0 then begin
         if lwfDateTime in FOutFields then begin
           Result := Result +
-              FormatDateTime( FDateFormat,
-                              SystemTimeToDateTime(RecBuf[rBeg].SystemTime)) + ' ';
+              AnsiString( FormatDateTime( FDateFormat,
+                              SystemTimeToDateTime(RecBuf[rBeg].SystemTime))) + ' ';
         end;
         if lwfThreadID in FOutFields then begin
           Str(RecBuf[rBeg].ThreadID:10, TmpStr);
@@ -487,7 +489,7 @@ end;
 
 procedure TVKDBFLog.Open;
 var
-  dateString: AnsiString;
+  dateString: string;
   i: Integer;
 begin
   cs.Acquire;
@@ -527,7 +529,7 @@ begin
     try
       FOnAfterWriteLog(self, Level);
     except
-      WriteInternal('TVKDBFLog.Write: Ошибка при вызове события OnAfterWriteLog в логе ''' + LogSuffix + ''' !', 0, SubSystem);
+      WriteInternal('TVKDBFLog.Write: Ошибка при вызове события OnAfterWriteLog в логе ''' + AnsiString(LogSuffix) + ''' !', 0, SubSystem);
     end;
 end;
 
@@ -551,9 +553,9 @@ begin
       GetLocalTime(RecBuf[BeginIndex].SystemTime);
       RecBuf[BeginIndex].ThreadID := GetCurrentThreadID;
       RecBuf[BeginIndex].Level := Level;
-      StrLCopy(RecBuf[BeginIndex].SubSystem, pSubSystem, SubSystemLen);
+      {$IFDEF DELPHIXE4}AnsiStrings.{$ENDIF}StrLCopy(RecBuf[BeginIndex].SubSystem, pSubSystem, SubSystemLen);
       RecBuf[BeginIndex].SubSystem[SubSystemLen] := #0;
-      StrLCopy(RecBuf[BeginIndex].info, pInfo, PieceLen);
+      {$IFDEF DELPHIXE4}AnsiStrings.{$ENDIF}StrLCopy(RecBuf[BeginIndex].info, pInfo, PieceLen);
       RecBuf[BeginIndex].info[PieceLen] := #0;
       IncMod(BeginIndex);
       Inc(pInfo, PieceLen);

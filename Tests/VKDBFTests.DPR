@@ -12,7 +12,9 @@ uses
   VKDBFReCryptTestCase in 'VKDBFReCryptTestCase.pas',
   VKDBFCommaNumberTestCase in 'VKDBFCommaNumberTestCase.pas',
   VKDBFDeleteRecordsTest in 'VKDBFDeleteRecordsTest.pas',
-  VKDBFNextAfterSeek in 'VKDBFNextAfterSeek.pas',
+  VKDBFNextAfterSeekInt in 'VKDBFNextAfterSeekInt.pas',
+  VKDBFNextAfterSeekLong in 'VKDBFNextAfterSeekLong.pas',
+  VKDBFNextAfterSeekString in 'VKDBFNextAfterSeekString.pas',
   VKDBFNTXTestCase in 'VKDBFNTXTestCase.pas',
   VKDBFUtilTest in 'VKDBFUtilTest.pas';
 

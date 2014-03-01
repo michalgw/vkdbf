@@ -9,6 +9,7 @@ type
 
   TVKDBFNTXTestThread = class(TThread)
   private
+    FName: string;
     dbf: TVKDBFNTX;
   protected
     procedure Execute; override;
@@ -31,17 +32,25 @@ type
     procedure TestSecond;
   end;
 
-  function RndStr: String;
+  function RndStr: AnsiString;
 
 implementation
 
+procedure OutputDebugStringEx(lpOutputString: string); inline;
+var
+  count: Int64;
+begin
+  QueryPerformanceCounter(count);
+  OutputDebugString(PWideChar(lpOutputString + ' ' + IntToStr(count)));
+end;
+
 { TVKDBFNTXTestCase }
 
-function RndStr: String;
+function RndStr: AnsiString;
 var
-s: array [0..49] of char;
+  s: array [0..49] of AnsiChar;
   j: Integer;
-  c: char;
+  c: AnsiChar;
 begin
   for j := 0 to 49 do begin
     c := #0;
@@ -50,7 +59,7 @@ begin
                 (c in [#128..#175]) or
                 (c in [#224..#241])
                 ) do
-      c := Chr(Byte(Trunc(Random(256))));
+      c := AnsiChar(Byte(Trunc(Random(256))));
     s[j] := c;
   end;
   Result := s;
@@ -84,14 +93,18 @@ var
   t1, t2, t3, t4: TVKDBFNTXTestThread;
 begin
   t1 := TVKDBFNTXTestThread.Create(true);
+  t1.FName := 't1';
   t2 := TVKDBFNTXTestThread.Create(true);
+  t2.FName := 't2';
   t3 := TVKDBFNTXTestThread.Create(true);
+  t3.FName := 't3';
   t4 := TVKDBFNTXTestThread.Create(true);
+  t4.FName := 't4';
   try
-    t1.Resume;
-    t2.Resume;
-    t3.Resume;
-    t4.Resume;
+    t1.Start;
+    t2.Start;
+    t3.Start;
+    t4.Start;
     t1.WaitFor;
     t2.WaitFor;
     t3.WaitFor;
@@ -138,7 +151,7 @@ begin
   for i := 1 to 100000 do begin
     dbf.Edit;
     dbf.FieldByName('F1').AsInteger := Round(Random(999999999));
-    dbf.FieldByName('F2').AsString := RndStr;
+    dbf.FieldByName('F2').AsAnsiString := RndStr;
     dbf.Insert;
   end;
   index := TVKNTXIndex(dbf.Indexes.Add);
@@ -202,8 +215,10 @@ begin
       try
         dbf.Edit;
         dbf.FieldByName('F1').AsInteger := Round(Random(999999999));
-        dbf.FieldByName('F2').AsString := RndStr;
+        dbf.FieldByName('F2').AsAnsiString := RndStr;
         dbf.Post;
+
+        OutputDebugStringEx(FName + ' ' + IntToStr(i) + '/100000');
       finally
         dbf.RUnLock;
       end;

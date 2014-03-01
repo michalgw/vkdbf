@@ -51,8 +51,8 @@ procedure TVKDBFReCryptTestCase.SetUp;
 var
   fh: Integer;
   l: Integer;
-  c: array[0..1000] of char;
-  q: String;
+  c: array[0..1000] of PAnsiChar;
+  q: AnsiString;
 begin
   inherited SetUp;
   CopyFile( 'faulty\faulty.dbf',
@@ -83,7 +83,7 @@ begin
   FillChar(c, 1001, #0);
   FileRead(fh, c, l - 2);
   FileClose(fh);
-  SetString(q, pChar(@c[0]), l - 2);
+  SetString(q, PAnsiChar(@c[0]), l - 2);
   dbf.Crypt.Password := q;
   dbf.Crypt.CryptMethod := cmGost;
   dbf.Crypt.Active := True;
@@ -110,7 +110,7 @@ begin
   FillChar(c, 1001, #0);
   FileRead(fh, c, l - 2);
   FileClose(fh);
-  SetString(q, pChar(@c[0]), l - 2);
+  SetString(q, PAnsiChar(@c[0]), l - 2);
   sessions.Crypt.Password := q;
   sessions.Crypt.CryptMethod := cmGost;
   sessions.Crypt.Active := True;
@@ -271,35 +271,56 @@ var
   DataSetFld: TDataSetField;
   NstDSet1: TVKNestedDBF;
   DataSetFld1: TDataSetField;
+  data1, data2: TArray<Byte>;
 begin
   //
   dbf_file.First;
   dbf_file_original.First;
   while not dbf_file.Eof do
-  begin
-    for i := 0 to pred(dbf_file.Fields.Count) do
     begin
-      if dbf_file.Fields[i].DataType = ftDataSet then begin
-        DataSetFld := TDataSetField(dbf_file.Fields[i]);
-        DataSetFld1 := TDataSetField(dbf_file_original.Fields[i]);
-        if not DataSetFld.IsNull then begin
-          NstDSet := TVKNestedDBF(DataSetFld.NestedDataSet);
-          NstDSet.Open;
-          NstDSet1 := TVKNestedDBF(DataSetFld1.NestedDataSet);
-          NstDSet1.Open;
-          CompareTwoDBF(NstDSet, NstDSet);
-          NstDSet.Close;
-          NstDSet1.Close;
-          FreeAndNil(NstDSet);
-          FreeAndNil(NstDSet1);
-        end else
-          Assert(DataSetFld.IsNull and DataSetFld1.IsNull, 'Оба поля должны быть nil!');
-      end else
-        Assert(dbf_file.Fields[i].Value = dbf_file_original.Fields[i].Value, 'Поля ' + dbf_file.Fields[i].Name + ' не совпадают!');
+      for i := 0 to pred(dbf_file.Fields.Count) do
+        begin
+          if dbf_file.Fields[i].DataType = ftDataSet then
+            begin
+              DataSetFld := TDataSetField(dbf_file.Fields[i]);
+              DataSetFld1 := TDataSetField(dbf_file_original.Fields[i]);
+              if not DataSetFld.IsNull then begin
+                NstDSet := TVKNestedDBF(DataSetFld.NestedDataSet);
+                NstDSet.Open;
+                NstDSet1 := TVKNestedDBF(DataSetFld1.NestedDataSet);
+                NstDSet1.Open;
+                CompareTwoDBF(NstDSet, NstDSet);
+                NstDSet.Close;
+                NstDSet1.Close;
+                FreeAndNil(NstDSet);
+                FreeAndNil(NstDSet1);
+              end else
+                Assert(DataSetFld.IsNull and DataSetFld1.IsNull, 'Оба поля должны быть nil!');
+            end
+          else
+            begin
+              if (dbf_file.Fields[i].IsNull) then
+                begin
+                  CheckTrue(dbf_file_original.Fields[i].IsNull, 'Поля ' + dbf_file.Fields[i].Name + ' не совпадают по содержимому!');
+                end
+              else
+              if (dbf_file.Fields[i].IsBlob) then
+                begin
+                  data1 := dbf_file.Fields[i].AsBytes;
+                  data2 := dbf_file_original.Fields[i].AsBytes;
+                  CheckEquals(Length(data1), Length(data2), 'Поля ' + dbf_file.Fields[i].Name + ' не совпадают по длине содержимого!');
+                  if Length(data1) > 0 then
+                    CheckTrue(CompareMem(@data1[0], @data2[0], Length(data1)), 'Поля ' + dbf_file.Fields[i].Name + ' не совпадают по содержимому!');
+                end
+              else
+                begin
+                  CheckTrue(dbf_file.Fields[i].Value = dbf_file_original.Fields[i].Value, 'Поля ' + dbf_file.Fields[i].Name + ' не совпадают по содержимому!');
+                end;
+            end;
+        end;
+      dbf_file.Next;
+      dbf_file_original.Next;
     end;
-    dbf_file.Next;
-    dbf_file_original.Next;
-  end;
 end;
 
 procedure TVKDBFReCryptTestCase.TestThird;

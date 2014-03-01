@@ -9,7 +9,7 @@
 { The Initial Developer of the Original Code is Vlad Karpov (KarpovVV@protek.ru).  }
 {                                                                                  }
 { Contributors:                                                                    }
-{   Sergey Klochkov (HSerg)                                                        }
+{   Sergey Klochkov (HSerg@sklabs.ru)                                              }
 {                                                                                  }
 { You may retrieve the latest version of this file at the Project vkDBF home page, }
 { located at https://sourceforge.net/projects/vkdbf/                               }
@@ -21,8 +21,7 @@ interface
 
 uses
   contnrs, Dialogs, syncobjs,
-  {$IFDEF VER140} Variants, {$ENDIF}
-  {$IFDEF VER150} Variants, {$ENDIF}
+  {$IFDEF DELPHI6} Variants, {$ENDIF}
   {$IFDEF VKDBFMEMCONTROL} Windows, DB,{$ENDIF}
   sysutils;
 
@@ -81,7 +80,6 @@ type
   end;
 
   {$IFDEF VKDBFMEMCONTROL}
-  //function Int64toVariant(value: Int64): Variant;
   //function getUseDbf: boolean;
   //procedure setUseDBF(newValue: boolean);
   function getUseExDbf: boolean;
@@ -108,15 +106,11 @@ uses
 {$IFDEF VKDBFMEMCONTROL}
 function Int64toVariant(value: Int64): Variant;
 begin
-  {$IFDEF VER130}
+  {$IFDEF DELPHI6}
+  Result := value;
+  {$ELSE}
   TVarData(Result).VType := VT_DECIMAL;
   Decimal(Result).lo64 := value;
-  {$ENDIF}
-  {$IFDEF VER140}
-  Result := value;
-  {$ENDIF}
-  {$IFDEF VER150}
-  Result := value;
   {$ENDIF}
 end;
 function getUseDbf: boolean;

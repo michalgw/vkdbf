@@ -9,7 +9,7 @@
 { The Initial Developer of the Original Code is Vlad Karpov (KarpovVV@protek.ru).  }
 {                                                                                  }
 { Contributors:                                                                    }
-{   Sergey Klochkov (HSerg)                                                        }
+{   Sergey Klochkov (HSerg@sklabs.ru)                                              }
 {                                                                                  }
 { You may retrieve the latest version of this file at the Project vkDBF home page, }
 { located at https://sourceforge.net/projects/vkdbf/                               }
@@ -350,7 +350,7 @@ type
   private
     FDBFDataSet: TVKSmartDBF;
   protected
-    procedure DataEvent(Event: TDataEvent; Info: Longint); override;
+    procedure DataEvent(Event: TDataEvent; Info: {$IFDEF DELPHIXE2}NativeInt{$ELSE}Integer{$ENDIF}); override;
     procedure DataSetScrolled(Distance: Integer); override;
   public
     property DBFDataSet: TVKSmartDBF read FDBFDataSet write FDBFDataSet;
@@ -494,6 +494,9 @@ type
     procedure SetSize(NewSize: Longint); override;
     procedure SaveToDBT;
     function Write(const Buffer; Count: Longint): Longint; override;
+    {$IFDEF DELPHIXE3}
+    function Write(const Buffer: TBytes; Offset, Count: Longint): Longint; override;
+    {$ENDIF DELPHIXE3}
     property SmartDBF: TVKSmartDBF read FSmartDBF write FSmartDBF;
     property Field: TField read FField write FField;
   end;
@@ -517,7 +520,7 @@ type
     FLocateBuffer: pAnsiChar;
     FMasterFields: AnsiString;
     FRange: boolean;
-    ListMasterFields: TList;
+    ListMasterFields: TVKListOfFields;
     FTableFlag: TTableFlag;
 
     FAlwaysSetFieldData: boolean;
@@ -581,7 +584,6 @@ type
     procedure MoveRecordForDeleteFields(pRecordBuffer: pAnsiChar; newDbf: TVKSmartDBF);
 
   private
-    { Private declarations }
     FStreamedActive: boolean;
     FStreamedCreateNow: boolean;
     FTempRecord: pAnsiChar;
@@ -662,13 +664,17 @@ type
     procedure InternalSetCurrentIndex(i: Integer);
 
   protected
-    { Protected declarations }
 
     procedure Loaded; override;
 
     procedure DoAfterOpen; override;
     procedure DoBeforeClose; override;
+
     procedure DataConvert(Field: TField; Source, Dest: Pointer; ToNative: Boolean); override;
+    {$IFDEF DELPHIXE3}
+    procedure DataConvert(Field: TField; Source: TValueBuffer; {$IFDEF DELPHIXE4}var{$ENDIF} Dest: TValueBuffer; ToNative: Boolean); override;
+    {$ENDIF DELPHIXE3}
+
     {$IFDEF DELPHI2009}
     function AllocRecordBuffer: TRecordBuffer; override;
     procedure FreeRecordBuffer(var Buffer: TRecordBuffer); override;
@@ -703,7 +709,13 @@ type
     procedure InternalOpen; override;
     procedure InternalEdit; override;
     procedure InternalPost; override;
+
+    procedure InternalSetFieldData(Field: TField; Buffer: Pointer);
     procedure SetFieldData(Field: TField; Buffer: Pointer); override;
+    {$IFDEF DELPHIXE3}
+    procedure SetFieldData(Field: TField; Buffer: TValueBuffer); override;
+    {$ENDIF DELPHIXE3}
+
     procedure SetActive(Value: Boolean); override;
     procedure InternalRefresh; override;
 
@@ -729,7 +741,7 @@ type
     procedure SetRecNo(Value: Integer); override;
 
     function GetStateFieldValue(State: TDataSetState; Field: TField): Variant; override;
-    function CompareLocateField(const Fields: TList; const KeyValues: Variant; Options: TLocateOptions): Integer;
+    function CompareLocateField(const Fields: TVKListOfFields; const KeyValues: Variant; Options: TLocateOptions): Integer;
 
     procedure SetFiltered(Value: Boolean); override;
 
@@ -773,9 +785,9 @@ type
 
     function ReccordLockInternal(nRec: Integer; bReload: boolean = true): Boolean;
 
-  public
+    function InternalGetFieldData(Field: TField; Buffer: Pointer): Boolean;
 
-    { Public declarations }
+  public
 
     FullLengthCharFieldCopy: boolean;
     Changed: boolean;
@@ -788,7 +800,10 @@ type
 
     function IsCursorOpen: Boolean; override;
 
-    function GetFieldData(Field: TField; Buffer: Pointer): Boolean; override;
+    {$IFDEF DELPHIXE3}
+    function GetFieldData(Field: TField; {$IFDEF DELPHIXE4}var{$ENDIF} Buffer: TValueBuffer): Boolean; overload; override;
+    {$ENDIF DELPHIXE3}
+    function GetFieldData(Field: TField; Buffer: Pointer): Boolean; overload; override;
     function Translate(Src, Dest: PAnsiChar; ToOem: Boolean): Integer; override;
     function TranslateBuff(Src, Dest: PAnsiChar; ToOem: Boolean; Len: Integer): Integer;
 
@@ -944,7 +959,6 @@ type
 
   published
 
-    { Published declarations }
     property Active;
     property OEM: Boolean read FOEM write FOEM default false;
     property SetDeleted: Boolean read FSetDeleted write SetSetDeleted;
@@ -1020,7 +1034,7 @@ type
     procedure InternalPost; override;
     procedure InternalClose; override;
     procedure DeleteRecallRecord(Del: boolean = true); override;
-    procedure DataEvent(Event: TDataEvent; Info: Longint); override;
+    procedure DataEvent(Event: TDataEvent; Info: {$IFDEF DELPHIXE2}NativeInt{$ELSE}Integer{$ENDIF}); override;
 
     function GetParentCryptObject: TVKDBFCrypt; override;
 
@@ -1103,7 +1117,6 @@ type
     procedure WriteDBFIndexDefData(Writer: TWriter);
 
   public
-    { Public declarations }
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
 
@@ -1141,19 +1154,11 @@ function ExtType2Str(t: TVKDBFType): AnsiString;
 function Str2ExtType(s: AnsiString): TVKDBFType;
 function SwapInt(const Value): Integer;
 function SwapInt64( const Value ) : Int64;
-procedure Register;
 
 implementation
 
-uses Dialogs, DBcommon, ActiveX;
-
-{$R DBF.RES}
-
-//******************************************************************************
-procedure Register;
-begin
-  RegisterComponents('VK DBF', [TVKDBFNTX, {TVKDBFCDX,} TVKNestedDBF]);
-end;
+uses
+  AnsiStrings, Dialogs, DBcommon;
 
 //******************************************************************************
 function SwapInt( const Value ): Integer;
@@ -1313,7 +1318,7 @@ begin
   else
     Result := '';
   end;
-  Result := trim(Result);
+  Result := AnsiStrings.Trim(Result);
 end;
 
 function Str2ExtType(s: AnsiString): TVKDBFType;
@@ -1407,7 +1412,7 @@ begin
   Result := VKDBFMemMgr.oMem.GetMem(self, RecordBufferSize);
 end;
 
-function TVKSmartDBF.CompareLocateField(const Fields: TList;
+function TVKSmartDBF.CompareLocateField(const Fields: TVKListOfFields;
   const KeyValues: Variant; Options: TLocateOptions): Integer;
 var
   FieldCount: Integer;
@@ -1600,9 +1605,9 @@ begin
               Result := 0;
           end else
             if loCaseInsensitive in Options then
-              Result := AnsiCompareText(v1, v2)
+              Result := AnsiStrings.AnsiCompareText(v1, v2)
             else
-              Result := AnsiCompareStr(v1, v2);
+              Result := AnsiStrings.AnsiCompareStr(v1, v2);
         end;
         ftSmallint, ftInteger:
         begin
@@ -1758,7 +1763,7 @@ begin
 
   FMasterFields := '';
   FRange := false;
-  ListMasterFields := TList.Create;
+  ListMasterFields := TVKListOfFields.Create;
 
   FFastPostRecord := false;
 
@@ -2155,6 +2160,21 @@ begin
 end;
 
 function TVKSmartDBF.GetFieldData(Field: TField; Buffer: Pointer): Boolean;
+begin
+  Result := InternalGetFieldData(Field, Buffer);
+end;
+
+{$IFDEF DELPHIXE3}
+function TVKSmartDBF.GetFieldData(Field: TField; {$IFDEF DELPHIXE4}var{$ENDIF} Buffer: TValueBuffer): Boolean;
+begin
+  if not Assigned(Buffer) then
+    Result := InternalGetFieldData(Field, nil)
+  else
+    Result := InternalGetFieldData(Field, @Buffer[0]);
+end;
+{$ENDIF DELPHIXE3}
+
+function TVKSmartDBF.InternalGetFieldData(Field: TField; Buffer: Pointer): Boolean;
 var
   iCode, dInt: Integer;
   dInt64: Int64;
@@ -2193,7 +2213,7 @@ begin
           end;
         end;
         ss := ActiveBuf + qq.FOff;
-        if Buffer <> nil then
+        if Assigned(Buffer) then
         begin
           case Field.DataType of
             ftTime:
@@ -2554,22 +2574,22 @@ begin
                     if Result then begin
                       Move(ss^, ss1, qq.FLen);
                       ss1[qq.FLen] := #0;
-                      LastSetp := DecimalSeparator;
-                      DecimalSeparator := '.';
-                      if TextToFloat(ss1, ww, fvExtended) then
+                      LastSetp := {$IFDEF DELPHIXE}FormatSettings.{$ENDIF}DecimalSeparator;
+                      {$IFDEF DELPHIXE}FormatSettings.{$ENDIF}DecimalSeparator := '.';
+                      if {$IFDEF DELPHIXE4}AnsiStrings.{$ENDIF}TextToFloat(ss1, ww, fvExtended) then
                       begin
                         dFloat := ww;
                         double(Buffer^) := dFloat;
                       end else begin
-                        DecimalSeparator := ',';
-                        if TextToFloat(ss1, ww, fvExtended) then
+                        {$IFDEF DELPHIXE}FormatSettings.{$ENDIF}DecimalSeparator := ',';
+                        if {$IFDEF DELPHIXE4}AnsiStrings.{$ENDIF}TextToFloat(ss1, ww, fvExtended) then
                         begin
                           dFloat := ww;
                           double(Buffer^) := dFloat;
                         end else
                           Result := false;
                       end;
-                      DecimalSeparator := LastSetp;
+                      {$IFDEF DELPHIXE}FormatSettings.{$ENDIF}DecimalSeparator := LastSetp;
                     end;
                   end;
                 end else begin
@@ -3172,11 +3192,17 @@ begin
       end;
   end;
   if Result = grOK then
-    {$IFDEF DELPHI2009}
-    GetCalcFields(pByte(Buffer));
-    {$ELSE}
-    GetCalcFields(Buffer);
-    {$ENDIF}
+    begin
+      {$IFDEF DELPHI2009}
+        {$IFDEF DELPHIXE4}
+      GetCalcFields(TRecBuf(Buffer));
+        {$ELSE}
+      GetCalcFields(pByte(Buffer));
+        {$ENDIF DELPHIXE4}
+      {$ELSE}
+      GetCalcFields(Buffer);
+      {$ENDIF DELPHI2009}
+    end;
 end;
 
 function TVKSmartDBF.GetRecordCount: Integer;
@@ -5030,6 +5056,18 @@ begin
 end;
 
 procedure TVKSmartDBF.SetFieldData(Field: TField; Buffer: Pointer);
+begin
+  InternalSetFieldData(Field, Buffer);
+end;
+
+{$IFDEF DELPHIXE3}
+procedure TVKSmartDBF.SetFieldData(Field: TField; Buffer: TValueBuffer);
+begin
+  InternalSetFieldData(Field, @Buffer[0]);
+end;
+{$ENDIF DELPHIXE3}
+
+procedure TVKSmartDBF.InternalSetFieldData(Field: TField; Buffer: Pointer);
 var
   ss, vfpnull, ActiveBuf: pAnsiChar;
   qq: TVKDBFFieldDef;
@@ -5186,7 +5224,7 @@ begin
               begin
                 if qq.field_type <> 'E' then begin
                   if FullLengthCharFieldCopy then
-                    StrMove(ss, Buffer, qq.FLen)
+                    {$IFDEF DELPHIXE4}AnsiStrings.{$ENDIF}StrMove(ss, Buffer, qq.FLen)
                   else begin
                     wE := false;
                     for i := 0 to qq.FLen - 1 do
@@ -5204,7 +5242,7 @@ begin
                   case qq.extend_type of
                     dbftString:
                       begin
-                        SLen := StrLen(pAnsiChar(Buffer));
+                        SLen := {$IFDEF DELPHIXE4}AnsiStrings.{$ENDIF}StrLen(PAnsiChar(Buffer));
                         WORD(Pointer(ss)^) := SLen;
                         ss := ss + SizeOf(WORD);
                         Move(Buffer^, ss^, SLen);
@@ -5212,7 +5250,7 @@ begin
                     dbftString_N:
                       begin
                         Byte(Pointer(ss)^) := 1;
-                        SLen := StrLen(pAnsiChar(Buffer));
+                        SLen := {$IFDEF DELPHIXE4}AnsiStrings.{$ENDIF}StrLen(PAnsiChar(Buffer));
                         ss := ss + 1;
                         WORD(Pointer(ss)^) := SLen;
                         ss := ss + SizeOf(WORD);
@@ -5220,7 +5258,7 @@ begin
                       end;
                     dbftFixedChar:
                       begin
-                        SLen := StrLen(pAnsiChar(Buffer));
+                        SLen := {$IFDEF DELPHIXE4}AnsiStrings.{$ENDIF}StrLen(PAnsiChar(Buffer));
                         Move(Buffer^, ss^, SLen);
                         ss[SLen] := #0;
                       end;
@@ -5647,7 +5685,7 @@ begin
       if (Src <> nil) then
       begin
         if OemToCharA(Src, Dest) then
-          Result := StrLen(Dest)
+          Result := {$IFDEF DELPHIXE4}AnsiStrings.{$ENDIF}StrLen(Dest)
         else
           Result := 0;
       end else
@@ -5656,7 +5694,7 @@ begin
       if (Src <> nil) then
       begin
         if CharToOemA(Src, Dest) then
-          Result := StrLen(Dest)
+          Result := {$IFDEF DELPHIXE4}AnsiStrings.{$ENDIF}StrLen(Dest)
         else
           Result := 0;
       end else
@@ -6565,7 +6603,7 @@ function TVKSmartDBF.LocateRecord(  const KeyFields: AnsiString;
                                     FullScanOnly: boolean = false): Integer;
 var
   m, i, j, k, l, n, p, o: Integer;
-  FFields: TList;
+  FFields: TVKListOfFields;
 
   procedure CntFld;
   var
@@ -6636,7 +6674,7 @@ var
 
   procedure FullScan;
   begin
-    FFields := TList.Create;
+    FFields := TVKListOfFields.Create;
     try
       GetFieldList(FFields, KeyFields);
       Result := LocatePass;
@@ -6704,10 +6742,14 @@ begin
     IndState := true;
     try
       {$IFDEF DELPHI2009}
+        {$IFDEF DELPHIXE4}
+      GetCalcFields(TRecBuf(IndRecBuf));
+        {$ELSE}
       GetCalcFields(pByte(IndRecBuf));
+        {$ENDIF DELPHIXE4}
       {$ELSE}
       GetCalcFields(IndRecBuf);
-      {$ENDIF}
+      {$ENDIF DELPHI2009}
       Result := FieldValues[ResultFields];
     finally
       IndState := false;
@@ -8062,16 +8104,38 @@ begin
     ftWideString:
       begin
         if ToNative then begin
-          Len := pInteger(pAnsiChar(pWideChar(Source^)) - 4)^;
-          Move(Pointer(pAnsiChar(pWideChar(Source^)) - 4)^, Dest^, Len + 6);
+          Len := PInteger(PAnsiChar(PWideChar(Source^)) - 4)^;
+          Move(Pointer(PAnsiChar(PWideChar(Source^)) - 4)^, Dest^, Len + 6);
         end else begin
-          pWideString(Dest)^ := pWideChar(pAnsiChar(Source) + 4);
+          PWideString(Dest)^ := PWideChar(PAnsiChar(Source) + 4);
         end;
       end;
   else
     inherited DataConvert(Field, Source, Dest, ToNative);
   end;
 end;
+
+{$IFDEF DELPHIXE3}
+procedure TVKSmartDBF.DataConvert(Field: TField; Source: TValueBuffer;
+  {$IFDEF DELPHIXE4}var{$ENDIF} Dest: TValueBuffer; ToNative: Boolean);
+var
+  Len: Integer;
+begin
+  case Field.DataType of
+    ftWideString:
+      begin
+        if ToNative then begin
+          Len := PInteger(PAnsiChar(PWideChar((@Source[0])^)) - 4)^;
+          Move(Pointer(PAnsiChar(PWideChar((@Source[0])^)) - 4)^, Dest[0], Len + 6);
+        end else begin
+          PWideString(@Dest[0])^ := PWideChar(PAnsiChar(@Source[0]) + 4);
+        end;
+      end;
+  else
+    inherited DataConvert(Field, Source, Dest, ToNative);
+  end;
+end;
+{$ENDIF DELPHIXE3}
 
 procedure TVKSmartDBF.Zap;
 begin
@@ -8394,7 +8458,7 @@ begin
       Result := 1;
   if Result = 9 then
   begin
-    Result := StrComp(PAnsiChar(BookMark1),PAnsiChar(Bookmark2));
+    Result := {$IFDEF DELPHIXE4}AnsiStrings.{$ENDIF}StrComp(PAnsiChar(BookMark1),PAnsiChar(Bookmark2));
     if Result < 0 then
       Result := -1
     else
@@ -9434,7 +9498,7 @@ end;
 
 { TVKDataLink }
 
-procedure TVKDataLink.DataEvent(Event: TDataEvent; Info: Integer);
+procedure TVKDataLink.DataEvent(Event: TDataEvent; Info: {$IFDEF DELPHIXE2}NativeInt{$ELSE}Integer{$ENDIF});
 begin
   inherited;
   if Event = deDataSetChange then begin
@@ -9940,6 +10004,15 @@ begin
   Result := inherited Write(Buffer, Count);
 end;
 
+{$IFDEF DELPHIXE3}
+function TVKDBTStream.Write(const Buffer: TBytes; Offset,
+  Count: Integer): Longint;
+begin
+  FModified := true;
+  Result := inherited Write(Buffer, Offset, Count);
+end;
+{$ENDIF DELPHIXE3}
+
 { TVKNestedDBF }
 
 procedure TVKNestedDBF.CloseLobStream;
@@ -9958,7 +10031,7 @@ begin
   LobHandler := ParentDataSet.LobHandler;
 end;
 
-procedure TVKNestedDBF.DataEvent(Event: TDataEvent; Info: Integer);
+procedure TVKNestedDBF.DataEvent(Event: TDataEvent; Info: {$IFDEF DELPHIXE2}NativeInt{$ELSE}Integer{$ENDIF});
 var
   i: Integer;
   oNested: TVKNestedDBF;
