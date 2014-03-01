@@ -12,7 +12,7 @@
 {   Sergey Klochkov (HSerg@sklabs.ru)                                              }
 {                                                                                  }
 { You may retrieve the latest version of this file at the Project vkDBF home page, }
-{ located at https://sourceforge.net/projects/vkdbf/                               }
+{ located at http://sourceforge.net/projects/vkdbf/                                }
 {                                                                                  }
 {**********************************************************************************}
 unit VKDBFDataSetReg;

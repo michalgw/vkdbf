@@ -8,4 +8,4 @@ Word, Indeger, Int64, Real4, Real6, Real8, Binary LOB
 any size and so on...
 There is a Crypt DBF feature.
 ==============================================================
-Home page: https://sourceforge.net/projects/vkdbf/
+Home page: http://sourceforge.net/projects/vkdbf/
