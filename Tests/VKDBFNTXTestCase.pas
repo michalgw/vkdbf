@@ -2,11 +2,10 @@ unit VKDBFNTXTestCase;
 
 interface
 
-uses  TestFrameWork, Windows, VKDBFDataSet, VKDBFNTX, Sysutils,
-      Classes, DB, VKDBFCrypt;
+uses
+  TestFrameWork, Classes, VKDBFDataSet;
 
 type
-
   TVKDBFNTXTestThread = class(TThread)
   private
     FName: string;
@@ -24,17 +23,17 @@ type
   protected
     procedure SetUp; override;
     procedure TearDown; override;
-  public
-    constructor Create(MethodName: string); override;
-    destructor Destroy; override;
   published
     procedure TestFirst;
     procedure TestSecond;
   end;
 
-  function RndStr: AnsiString;
+function RndStr(): AnsiString;
 
 implementation
+
+uses
+  SysUtils, Windows, VKDBFNTX;
 
 procedure OutputDebugStringEx(lpOutputString: string); inline;
 var
@@ -46,7 +45,7 @@ end;
 
 { TVKDBFNTXTestCase }
 
-function RndStr: AnsiString;
+function RndStr(): AnsiString;
 var
   s: array [0..49] of AnsiChar;
   j: Integer;
@@ -70,20 +69,78 @@ var
   index: TVKNTXIndex;
 begin
   dbf.Open;
-  index := TVKNTXIndex(dbf.Indexes[0]);
-  index.VerifyIndex;
-  index := TVKNTXIndex(dbf.Indexes[1]);
-  index.VerifyIndex;
-  dbf.Close;
+  try
+    index := TVKNTXIndex(dbf.Indexes[0]);
+    index.VerifyIndex;
+    index := TVKNTXIndex(dbf.Indexes[1]);
+    index.VerifyIndex;
+  finally
+    dbf.Close;
+  end;
 end;
 
 procedure TVKDBFNTXTestCase.SetUp;
+var
+  index: TVKNTXIndex;
+  fld: TVKDBFFieldDef;
+  i: Integer;
 begin
   inherited SetUp;
+
+  DeleteFile('tmp\ntxTest1.dbf');
+  DeleteFile('tmp\ntxTest1_1.ntx');
+  DeleteFile('tmp\ntxTest1_2.ntx');
+
+  Randomize;
+
+  dbf := TVKDBFNTX.Create(nil);
+  dbf.DBFFileName := 'tmp\ntxTest1.dbf';
+  dbf.OEM := true;
+  fld := TVKDBFFieldDef(dbf.DBFFieldDefs.Add);
+  fld.Name := 'F1';
+  fld.field_type := 'N';
+  fld.len := 9;
+  fld := TVKDBFFieldDef(dbf.DBFFieldDefs.Add);
+  fld.Name := 'F2';
+  fld.field_type := 'C';
+  fld.len := 50;
+  dbf.CreateTable;
+  dbf.AccessMode.AccessMode := 66;
+  dbf.Open;
+  for i := 1 to 100000 do
+    begin
+      dbf.Edit;
+      dbf.FieldByName('F1').AsInteger := Round(Random(999999999));
+      dbf.FieldByName('F2').AsAnsiString := RndStr();
+      dbf.Insert;
+    end;
+  index := TVKNTXIndex(dbf.Indexes.Add);
+  index.NTXFileName := 'tmp\ntxTest1_1.ntx';
+  index.KeyExpresion := 'F1';
+  index.CreateIndex();
+  index := TVKNTXIndex(dbf.Indexes.Add);
+  index.NTXFileName := 'tmp\ntxTest1_2.ntx';
+  index.KeyExpresion := 'F2';
+  index.CreateIndex();
+  dbf.Close;
 end;
 
 procedure TVKDBFNTXTestCase.TearDown;
 begin
+  if Assigned(dbf) then
+    begin
+      try
+        if dbf.Active then
+          dbf.Close;
+      finally
+        FreeAndNil(dbf);
+      end;
+    end;
+
+  DeleteFile('tmp\ntxTest1.dbf');
+  DeleteFile('tmp\ntxTest1_1.ntx');
+  DeleteFile('tmp\ntxTest1_2.ntx');
+
   inherited TearDown;
 end;
 
@@ -123,63 +180,6 @@ begin
   end;
 end;
 
-constructor TVKDBFNTXTestCase.Create(MethodName: string);
-var
-  index: TVKNTXIndex;
-  fld: TVKDBFFieldDef;
-  i: Integer;
-begin
-  inherited Create(MethodName);
-  DeleteFile('tmp\ntxTest1.dbf');
-  DeleteFile('tmp\ntxTest1_1.ntx');
-  DeleteFile('tmp\ntxTest1_2.ntx');
-  Randomize;
-  dbf := TVKDBFNTX.Create(nil);
-  dbf.DBFFileName := 'tmp\ntxTest1.dbf';
-  dbf.OEM := true;
-  fld := TVKDBFFieldDef(dbf.DBFFieldDefs.Add);
-  fld.Name := 'F1';
-  fld.field_type := 'N';
-  fld.len := 9;
-  fld := TVKDBFFieldDef(dbf.DBFFieldDefs.Add);
-  fld.Name := 'F2';
-  fld.field_type := 'C';
-  fld.len := 50;
-  dbf.CreateTable;
-  dbf.AccessMode.AccessMode := 66;
-  dbf.Open;
-  for i := 1 to 100000 do begin
-    dbf.Edit;
-    dbf.FieldByName('F1').AsInteger := Round(Random(999999999));
-    dbf.FieldByName('F2').AsAnsiString := RndStr;
-    dbf.Insert;
-  end;
-  index := TVKNTXIndex(dbf.Indexes.Add);
-  index.NTXFileName := 'tmp\ntxTest1_1.ntx';
-  index.KeyExpresion := 'F1';
-  index.CreateIndex();
-  index := TVKNTXIndex(dbf.Indexes.Add);
-  index.NTXFileName := 'tmp\ntxTest1_2.ntx';
-  index.KeyExpresion := 'F2';
-  index.CreateIndex();
-  dbf.Close;
-end;
-
-destructor TVKDBFNTXTestCase.Destroy;
-begin
-  if dbf <> nil then begin
-    try
-      if dbf.Active then dbf.Close;
-      DeleteFile('tmp\ntxTest1.dbf');
-      DeleteFile('tmp\ntxTest1_1.ntx');
-      DeleteFile('tmp\ntxTest1_2.ntx');
-    finally
-      FreeAndNil(dbf);
-    end;
-  end;
-  inherited;
-end;
-
 { TVKDBFNTXTestThread }
 
 constructor TVKDBFNTXTestThread.Create(CreateSuspended: Boolean);
@@ -215,7 +215,7 @@ begin
       try
         dbf.Edit;
         dbf.FieldByName('F1').AsInteger := Round(Random(999999999));
-        dbf.FieldByName('F2').AsAnsiString := RndStr;
+        dbf.FieldByName('F2').AsAnsiString := RndStr();
         dbf.Post;
 
         OutputDebugStringEx(FName + ' ' + IntToStr(i) + '/100000');
