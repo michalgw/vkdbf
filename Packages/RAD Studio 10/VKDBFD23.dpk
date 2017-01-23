@@ -31,7 +31,7 @@ package VKDBFD23;
 
 requires
   rtl,
-  VKDBFR18;
+  VKDBFR23;
 
 contains
   VKDBFDataSetReg in '..\..\Design\VKDBFDataSetReg.pas';
