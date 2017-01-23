@@ -23,7 +23,7 @@ interface
 
 uses
   Db, Windows, SysUtils, Dialogs,
-  {$IFDEF DELPHIXE3} System.Generics.Collections, {$ENDIF DELPHIXE3}
+  {$IFDEF DELPHIXE3} System.Generics.Collections, {$ELSE} Classes, {$ENDIF DELPHIXE3}
   {$IFDEF VKDBF_LOGGIN}VKDBFLogger,{$ENDIF}
   VKDBFMemMgr;
 
