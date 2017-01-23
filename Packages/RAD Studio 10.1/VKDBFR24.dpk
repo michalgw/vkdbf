@@ -1,0 +1,53 @@
+package VKDBFR24;
+
+{$R *.res}
+{$IFDEF IMPLICITBUILDING This IFDEF should not be used by users}
+{$ALIGN 8}
+{$ASSERTIONS ON}
+{$BOOLEVAL OFF}
+{$DEBUGINFO OFF}
+{$EXTENDEDSYNTAX ON}
+{$IMPORTEDDATA ON}
+{$IOCHECKS ON}
+{$LOCALSYMBOLS ON}
+{$LONGSTRINGS ON}
+{$OPENSTRINGS ON}
+{$OPTIMIZATION OFF}
+{$OVERFLOWCHECKS OFF}
+{$RANGECHECKS OFF}
+{$REFERENCEINFO ON}
+{$SAFEDIVIDE OFF}
+{$STACKFRAMES ON}
+{$TYPEDADDRESS OFF}
+{$VARSTRINGCHECKS ON}
+{$WRITEABLECONST OFF}
+{$MINENUMSIZE 1}
+{$IMAGEBASE $400000}
+{$DEFINE DEBUG}
+{$ENDIF IMPLICITBUILDING}
+{$DESCRIPTION 'VK DBF - Delphi 10.1 - Runtime'}
+{$RUNONLY}
+{$IMPLICITBUILD OFF}
+
+requires
+  rtl,
+  vcl,
+  dbrtl;
+
+contains
+  VKDBFCDX in '..\..\Source\VKDBFCDX.pas',
+  VKDBFCollate in '..\..\Source\VKDBFCollate.pas',
+  VKDBFCrypt in '..\..\Source\VKDBFCrypt.pas',
+  VKDBFDataSet in '..\..\Source\VKDBFDataSet.pas',
+  VKDBFGostCrypt in '..\..\Source\VKDBFGostCrypt.pas',
+  VKDBFIndex in '..\..\Source\VKDBFIndex.pas',
+  VKDBFLogger in '..\..\Source\VKDBFLogger.pas',
+  VKDBFMemMgr in '..\..\Source\VKDBFMemMgr.pas',
+  VKDBFNTX in '..\..\Source\VKDBFNTX.pas',
+  VKDBFParser in '..\..\Source\VKDBFParser.pas',
+  VKDBFPrx in '..\..\Source\VKDBFPrx.pas',
+  VKDBFSortedList in '..\..\Source\VKDBFSortedList.pas',
+  VKDBFSorters in '..\..\Source\VKDBFSorters.pas',
+  VKDBFUtil in '..\..\Source\VKDBFUtil.pas';
+
+end.

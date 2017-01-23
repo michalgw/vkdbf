@@ -1,0 +1,48 @@
+﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+    <PropertyGroup>
+        <ProjectGuid>{CBED3673-F363-4CC6-8179-06B25823C069}</ProjectGuid>
+    </PropertyGroup>
+    <ItemGroup>
+        <Projects Include="VKDBFR24.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="VKDBFD24.dproj">
+            <Dependencies/>
+        </Projects>
+    </ItemGroup>
+    <ProjectExtensions>
+        <Borland.Personality>Default.Personality.12</Borland.Personality>
+        <Borland.ProjectType/>
+        <BorlandProject>
+            <Default.Personality/>
+        </BorlandProject>
+    </ProjectExtensions>
+    <Target Name="VKDBFR24">
+        <MSBuild Projects="VKDBFR24.dproj"/>
+    </Target>
+    <Target Name="VKDBFR24:Clean">
+        <MSBuild Projects="VKDBFR24.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="VKDBFR24:Make">
+        <MSBuild Projects="VKDBFR24.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="VKDBFD24">
+        <MSBuild Projects="VKDBFD24.dproj"/>
+    </Target>
+    <Target Name="VKDBFD24:Clean">
+        <MSBuild Projects="VKDBFD24.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="VKDBFD24:Make">
+        <MSBuild Projects="VKDBFD24.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="Build">
+        <CallTarget Targets="VKDBFR24;VKDBFD24"/>
+    </Target>
+    <Target Name="Clean">
+        <CallTarget Targets="VKDBFR24:Clean;VKDBFD24:Clean"/>
+    </Target>
+    <Target Name="Make">
+        <CallTarget Targets="VKDBFR24:Make;VKDBFD24:Make"/>
+    </Target>
+    <Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')"/>
+</Project>
